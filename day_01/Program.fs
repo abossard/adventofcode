@@ -12,6 +12,7 @@ let main argv =
         readLines "input.txt"
         |> Seq.filter keepFull
         |> Seq.map int
+        |> Seq.toArray
     let cache = Array.create 2020 0
     [ for s in input do cache.[s] <- s] |> ignore
     let checkFor2020 value =
@@ -23,6 +24,23 @@ let main argv =
         input |> Seq.map checkFor2020
         |> Seq.filter bFst
         |> Seq.map mulTuple
+
     let r = Seq.head results
     printf "Result: %i" r
+    let size = input |> Seq.length
+    let sizeMul = (size |> float) ** (2 |> float) |> int 
+    let multiplexed = Array.create sizeMul 0
+    [for i in [0 .. size - 1] do [for ii in [0 .. size - 1] do multiplexed.[i * size + ii] <- input.[i] + input.[ii]]] |> ignore
+    let indexCombinations = [for i in [0 .. (size*size) - 1] -> (i/size ,i%size)]
+    let valueCombinations =
+        indexCombinations |> Seq.map (fun i -> (input.[fst i] + input.[snd i], (input.[fst i], input.[snd i])))
+        |> Seq.filter (fun i -> fst i < 2020)
+        |> Seq.map (fun i -> ((if cache.[2020 - fst i] + fst i = 2020 then true else false), cache.[2020 - fst i] * fst (snd i) * snd (snd i)))
+        |> Seq.filter (fst)
+   
+        (*|> Seq.map checkFor2020
+        |> Seq.filter bFst
+        |> Seq.map mulTuple*)
+    let r2 = snd (Seq.head valueCombinations)
+    printf "\nResult: %i" r2
     0 // return an integer exit code
